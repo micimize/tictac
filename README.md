@@ -1,10 +1,10 @@
 # tictac
 
-A Clojure library designed to ... well, that part is up to you.
+uses bitboards for discovering if a user has won the game
 
 ## Usage
 
-FIXME
+as usage from the command line would be awkward, I forwent adding any kind of interface for the code. 
 
 ## License
 
