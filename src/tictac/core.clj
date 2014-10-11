@@ -1,7 +1,7 @@
 (ns tictac.core
-  (:require [criterium.core :as c]))
+  (:require [clojure.string :as s]))
 
-(def winning-boards [
+(def winning-bitboards [
     [1 1 1
      0 0 0
      0 0 0],
@@ -36,17 +36,33 @@
 ])
 
 (defn compile-bitboard [board sign]
-  (map #(if (= sign %) 1 0) (flatten board)))
+  " takes a vector board with vector rows of symbols/strings/ints, or a sring board, and returns a bitboard for the given sign"
+  (if (string? board)
+    (map #(if (= (first (vec sign)) %) 1 0) (s/replace board #"\s" ""))
+    (map #(if (= sign %) 1 0) (flatten board))))
 
-;=> 3.815241
-
-(defn victory? [bitboard, [first-winning-board & rest-winning-boards]]
+(defn bitboard-statematch? [bitboard, [first-state & rest-states]]
+  "returns true if the given bitboard contains one of the states in the second argument"
   (or
-     (= (map bit-and bitboard first-winning-board) first-winning-board)
-     (and (not (empty? rest-winning-boards))
-          (victory? bitboard rest-winning-boards))))
+     (= (map bit-and bitboard first-state) first-state)
+     (and (not (empty? rest-states))
+          (bitboard-statematch? bitboard rest-states))))
 
-(defn generate-random-bitboard []
-   (vec (take 9 (repeatedly #(rand-int 2)))))
+(defn bitvictory? [bitboard]
+  (bitboard-statematch? bitboard winning-bitboards))
 
-(c/bench (victory? (generate-random-bitboard) winning-boards))
+(defn victory? [board sign]
+  (bitvictory? (compile-bitboard board sign)))
+
+
+(victory? [[:x  :o  nil]
+           [:x  nil :o ]
+           [:x  :o  nil]] :x)
+
+(victory? "xon
+           xon
+           xno" "x")
+
+;; These will also work:
+;; (victory? [[1  0  nil] [1  nil 0 ] [1  0  nil]] 1)
+;; (victory? [["x" "o" nil] ["x" nil "o"] ["x" "o" nil]] "o")
